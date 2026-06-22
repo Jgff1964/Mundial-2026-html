@@ -1,23 +1,53 @@
-from html import escape
-from flags import display_country, canon_country_name
-def txt(x):
-    c=canon_country_name(x); return escape(c if c.startswith(('GANADOR','PERDEDOR')) else display_country(c)) if c else ''
-def box(x,y,w,h,title,home,away,color): return f'<g><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="9" fill="#f7f7f7" stroke="#dfe9ff"/><rect x="{x}" y="{y}" width="{w}" height="24" rx="9" fill="{color}"/><text x="{x+w/2}" y="{y+17}" class="title">{escape(title)}</text><text x="{x+16}" y="{y+47}" class="team">{txt(home)}</text><text x="{x+w/2}" y="{y+62}" class="vs">VS</text><text x="{x+16}" y="{y+83}" class="team">{txt(away)}</text></g>'
-def conn(x1,y1,x2,y2,c):
-    m=(x1+x2)/2; return f'<path d="M{x1},{y1} C{m},{y1} {m},{y2} {x2},{y2}" fill="none" stroke="{c}" stroke-width="3" stroke-linecap="round" filter="url(#glow)"/>'
-def render_svg(b,subtitle='Promiedos'):
-    W,H=1800,1010; bw,bh=230,86; ly=[145,244,343,442,552,651,750,849]; x1,x2,x3,x4=55,345,555,680; xf=830; r4,r3,r2,r1=1030,1145,1345,1515
-    p=[f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}"><defs><filter id="glow"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="bg" x1="0" x2="1"><stop offset="0" stop-color="#040819"/><stop offset=".5" stop-color="#02040d"/><stop offset="1" stop-color="#080313"/></linearGradient></defs><rect width="{W}" height="{H}" fill="url(#bg)"/><path d="M36,960 C10,640 10,220 145,36 H650" stroke="#20a8ff" stroke-width="5" fill="none" filter="url(#glow)"/><path d="M1764,960 C1790,640 1790,220 1655,36 H1150" stroke="#ff1d68" stroke-width="5" fill="none" filter="url(#glow)"/><text x="900" y="62" class="main">MUNDIAL 2026 · CUADRO PROYECTADO HOY</text><text x="900" y="98" class="subtitle">{escape(subtitle)}</text><text x="37" y="610" class="vertical" transform="rotate(-90 37 610)">CAMINO 1</text><text x="1763" y="610" class="vertical" transform="rotate(90 1763 610)">CAMINO 2</text><text x="900" y="230" class="trophy">🏆</text>']
-    def head(t,x,w): p.append(f'<rect x="{x}" y="108" width="{w}" height="26" rx="10" fill="#050915" stroke="#31466e"/><text x="{x+w/2}" y="126" class="head">{t}</text>')
-    for t,x,w in [('DIECISEISAVOS',55,230),('OCTAVOS',345,160),('CUARTOS',555,135),('SEMIS',680,155),('FINAL',835,130),('SEMIS',1015,160),('CUARTOS',1145,135),('OCTAVOS',1345,160),('DIECISEISAVOS',1515,230)]: head(t,x,w)
-    for n,y in zip([74,77,73,75,83,84,81,82],ly): m=b['r32'][n]; p.append(box(x1,y,bw,bh,f"M{n} | {m.get('venue','')}",m['home'],m['away'],'#0b78dd' if n in [74,77,73,75,81,82] else '#00a0a8'))
-    for n,y in [(89,205),(90,390),(93,610),(94,795)]: m=b['r16'][n]; p.append(box(x2,y,160,bh,f"M{n} | {m.get('venue','')}",m['home'],m['away'],'#0b78dd' if n in [89,90] else '#00a0a8'))
-    for n,y in [(97,340),(98,695)]: m=b['qf'][n]; p.append(box(x3,y,135,bh,f"M{n} | {m.get('venue','')}",m['home'],m['away'],'#0b78dd' if n==97 else '#00a0a8'))
-    p.append(box(x4,510,155,bh,'M101 | DAL',b['sf'][101]['home'],b['sf'][101]['away'],'#6a2bc9')); p.append(box(xf,510,150,bh,'M104 | NYNJ',b['final'][104]['home'],b['final'][104]['away'],'#c89416')); p.append('<text x="910" y="705" class="thirdtitle">3° PUESTO / TERCER PUESTO</text>'); p.append(box(830,720,150,bh,'M103 | MIA',b['third'][103]['home'],b['third'][103]['away'],'#e37812')); p.append(box(r4,510,155,bh,'M102 | ATL',b['sf'][102]['home'],b['sf'][102]['away'],'#d11169'))
-    for n,y in [(99,340),(100,695)]: m=b['qf'][n]; p.append(box(r3,y,135,bh,f"M{n} | {m.get('venue','')}",m['home'],m['away'],'#d11169'))
-    for n,y in [(91,205),(92,390),(95,610),(96,795)]: m=b['r16'][n]; p.append(box(r2,y,160,bh,f"M{n} | {m.get('venue','')}",m['home'],m['away'],'#e0004d'))
-    for n,y in zip([76,78,79,80,86,88,85,87],ly): m=b['r32'][n]; p.append(box(r1,y,bw,bh,f"M{n} | {m.get('venue','')}",m['home'],m['away'],'#e0004d'))
-    # simple connection lines
-    for a,bp in [((x1+bw,188),(x2,248)),((x1+bw,287),(x2,248)),((x1+bw,386),(x2,433)),((x1+bw,485),(x2,433)),((r1,188),(r2+160,248)),((r1,287),(r2+160,248)),((r1,386),(r2+160,433)),((r1,485),(r2+160,433))]: p.append(conn(a[0],a[1],bp[0],bp[1],'#54b8ff' if a[0]<900 else '#ff4a8c'))
-    p.append(f'<text x="900" y="958" class="foot">{escape(b.get("source",""))}</text><style>.main{{font:700 42px Arial,sans-serif;fill:#fff;text-anchor:middle}}.subtitle{{font:700 24px Arial,sans-serif;fill:#ddd;text-anchor:middle}}.head{{font:700 13px Arial,sans-serif;fill:#fff;text-anchor:middle}}.title{{font:700 14px Arial,sans-serif;fill:#fff;text-anchor:middle}}.team{{font:700 15px Arial,sans-serif;fill:#111}}.vs{{font:700 10px Arial,sans-serif;fill:#222;text-anchor:middle}}.vertical{{font:800 34px Arial,sans-serif;fill:#fff;text-anchor:middle;letter-spacing:2px}}.trophy{{font:90px Arial,sans-serif;text-anchor:middle}}.thirdtitle{{font:700 14px Arial,sans-serif;fill:#ffcc44;text-anchor:middle}}.foot{{font:italic 700 15px Arial,sans-serif;fill:#eee;text-anchor:middle}}</style></svg>')
-    return '\n'.join(p)
+# Mundial 2026 · HTML/CSS/JS + backend
+
+Versión reestructurada: HTML, CSS y JavaScript separados del backend Flask.
+
+## Archivos
+
+```txt
+app.py
+promiedos_client.py
+bracket_logic.py
+flags.py
+renderer.py
+templates/index.html
+static/app.js
+static/style.css
+requirements.txt
+Procfile
+render.yaml
+zonas_validadas.json
+```
+
+## Render
+
+Build Command:
+
+```txt
+pip install -r requirements.txt
+```
+
+Start Command:
+
+```txt
+gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120
+```
+
+Usar `Manual Deploy → Clear build cache & deploy`.
+
+
+## FIX deploy Render
+
+Se agregó:
+
+```txt
+.python-version
+```
+
+con:
+
+```txt
+3.13.5
+```
+
+Render estaba usando Python 3.14.3 por defecto. Esta versión fija Python 3.13.5 y pinea dependencias estables.
